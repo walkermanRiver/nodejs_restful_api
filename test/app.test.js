@@ -5,7 +5,8 @@ import { NIL } from 'uuid'
 import createApp from '../app/create-app.js'
 import InMemoryJobStorage from '../app/db/in-memory-job-storage.js'
 import basic_auth from '../app/auth/basic-auth.js';
-import create_job from '../app/job/job.js'
+import create_job from '../app/job/job-utility.js'
+import { JOB_STATUS_RESULT } from '../app/job/job-constants.js'
 
 describe('App', () => {
     let client
@@ -38,7 +39,7 @@ describe('App', () => {
 
     it('should create a default job', async () => {
         const inputJob = {
-          name: 'calculation'
+          name: 'defaultJob'
         };
         const expectedReturnedJob = create_job(inputJob);
 
@@ -52,11 +53,12 @@ describe('App', () => {
             // Check the HTTP status code
             .expect(200)
 
-        const returnedJobId = response.body.id;
-        // const location = `/api/v1/jobs/${returnedJobId}`;
-        assert.ok(returnedJobId);
+        // const returnedJobId = response.body.jobId;
         // eslint-disable-next-line no-unused-vars
-        const {id, trigger_timestamp, ...jobDetail} = response.body;
+        const {jobId, status, jobRequest: {trigger_timestamp, ...jobDetail}} = response.body;
+        // const location = `/api/v1/jobs/${returnedJobId}`;
+        assert.ok(jobId);
+        assert.equal(status, JOB_STATUS_RESULT.SUCCESS);
         assert.deepEqual(jobDetail, expectedReturnedJob);
         assert.equal(response.header.location, undefined);
         // assert.equal(location, response.header.location);
@@ -64,11 +66,12 @@ describe('App', () => {
 
     it('should create a customized job', async () => {
       const inputJob = {
-        name: 'calculation',
-        type:'defaultType',
-        if_return_location: true,
-        if_return_body: false,
-        returned_status_code: 201,
+        name: 'customized job',
+        trigger:{
+          expect_status_code: 200,
+          if_return_location: true,
+          if_return_body: false,
+        },
       };
 
       const response =
@@ -77,7 +80,7 @@ describe('App', () => {
           // Send a request payload
           .send(inputJob)
           // Check the HTTP status code
-          .expect(201);
+          .expect(200);
 
       assert.ok(response.header.location);
       assert.deepEqual(response.body, {});
@@ -93,7 +96,12 @@ describe('App', () => {
     it('should get a single job', async () => {
       const job = {
         name: 'planning',
-        if_return_location: true
+        job_execution_time_second: 20,
+        trigger:{
+          expect_status_code: 200,
+          if_return_location: true,
+          if_return_body: false,
+        }
       };
 
       const responseOfCreateJob =
@@ -102,21 +110,26 @@ describe('App', () => {
           // Send a request payload
           .send(job)
           // Check the Content-Type header
-          .expect('Content-Type', /application\/json/)
+          // .expect('Content-Type', /application\/json/)
           // Check the HTTP status code
           .expect(200);
 
+      assert.ok(responseOfCreateJob.header.location);
       const responseOfGetSingleJob = await client.get(responseOfCreateJob.header.location)
           .expect(200)
           .expect('Content-Type', /application\/json/);
 
       const returnedJob = responseOfGetSingleJob.body;
-      assert.deepEqual(returnedJob.name, job.name);
+
+      assert.equal(returnedJob.status,JOB_STATUS_RESULT.RUNNING);
+      assert.ok(returnedJob.jobId);
     })
 
     it('should return 400 on get single request with invalid id', async () => {
       const response = await client.get('/api/v1/jobs/-1')
+          // Check the Content-Type header
+          .expect('Content-Type', /application\/json/)
           .expect(400);
-      assert.deepEqual(response.body, {})
+      assert.ok(response.body);
     })
 })

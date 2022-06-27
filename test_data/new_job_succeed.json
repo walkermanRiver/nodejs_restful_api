@@ -1,0 +1,37 @@
+{
+    "name": "test job",
+    "job_execution_time_second": 20,
+    "trigger": {
+        "expect_status_code": 200,
+        "expect_status_result": "SUCCESS",
+        "expect_message": "succeed to start job",
+        "if_return_body": true,
+        "if_return_location": true,
+        "field_mapping": {
+            "status": "status",
+            "message": "message",
+            "jobId": "jobId"
+        },
+        "status_value_mapping": {
+            "RUNNING": "RUNNING",
+            "SUCCESS": "SUCCESS",
+            "FAILED": "FAILED"
+        }
+    },
+    "polling": {
+        "expect_status_code": 200,
+        "expect_status_result": "SUCCESS",
+        "expect_message": "default Message",
+        "if_return_body": true,
+        "field_mapping": {
+            "status": "status",
+            "message": "message",
+            "jobId": "jobId"
+        },
+        "status_value_mapping": {
+            "RUNNING": "RUNNING",
+            "SUCCESS": "SUCCESS",
+            "FAILED": "FAILED"
+        }
+    }
+}

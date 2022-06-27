@@ -37,7 +37,7 @@ export default class InMemoryJobStorage extends JobStorage{
       trigger_timestamp,
       ...job
     })
-    return id
+    return id;
   }
 
   async read(id) {

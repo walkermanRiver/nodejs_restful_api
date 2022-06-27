@@ -1,4 +1,4 @@
-import create_job from '../app/job/job.js'
+import create_job from '../app/job/job-utility.js'
 
 const normalJob = create_job({
   name: 'normalJob',
