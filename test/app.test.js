@@ -4,7 +4,7 @@ import sinon from 'sinon'
 import { NIL } from 'uuid'
 import createApp from '../app/create-app.js'
 import InMemoryJobStorage from '../app/db/in-memory-job-storage.js'
-import basic_auth from '../app/auth/basic-auth.js';
+import basic_auth from '../app/auth/raw-basic-auth.js';
 import create_job from '../app/job/job-utility.js'
 import { JOB_STATUS_RESULT } from '../app/job/job-constants.js'
 

@@ -1,14 +1,35 @@
 import express from 'express'
 import InvalidParam from './invalid-param.js'
-import auth from './auth/basic-auth.js';
+// import auth from './auth/raw-basic-auth.js';
+import auth from './auth/passport-basic-auth.js';
 import JobManager from './job/job-manager.js'
+
+// import passport from 'passport';
+// import {BasicStrategy} from 'passport-http'
+// passport.use(new BasicStrategy(
+//   async function(userid, password, done) {
+//     return done(null, 'test');
+//   }
+// ));
+
+// function auth(){
+//   return passport.authenticate('basic', { session: false })
+// }
 
 export default function createApp(storage){
   const app = express()
 
   // use basic HTTP auth to secure the api
-  app.use(auth.auth);
+  app.use(auth.getAuth());
+  // app.use(auth());
+  // app.use(passport.authenticate('basic', { session: false }));
   app.use(express.json());
+
+  // app.get('/private',
+  //   passport.authenticate('basic', { session: false }),
+  //   function(req, res) {
+  //     res.json(req.user);
+  //   });
 
   app.get('/api/v1/jobs', async (req, res, next) => {
     try{
