@@ -10,10 +10,13 @@ export default function createApp(storage){
   app.use(auth.auth);
   app.use(express.json());
 
-  app.get('/api/v1/jobs', async (req, res) => {
-    res
-      .status(200)
-      .json([]);
+  app.get('/api/v1/jobs', async (req, res, next) => {
+    try{
+      const jobManagerInstance = new JobManager(req,res,storage);
+      await jobManagerInstance.getAll();
+    }catch (error){
+      next(error)
+    }
   });
 
   app.get('/api/v1/jobs/:id', async (req, res, next) => {
@@ -29,6 +32,15 @@ export default function createApp(storage){
     try{
       const jobManagerInstance = new JobManager(req,res,storage);
       await jobManagerInstance.create();
+    } catch (error){
+      next(error)
+    }
+  })
+
+  app.delete('/api/v1/jobs', async (req, res, next) => {
+    try{
+      const jobManagerInstance = new JobManager(req,res,storage);
+      await jobManagerInstance.deleteAll();
     } catch (error){
       next(error)
     }

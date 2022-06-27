@@ -45,6 +45,15 @@ export default class JobManager {
     }
   }
 
+  async getAll(){
+    const savedJobs = await this.#storage.readAll();
+    let statusCode = 200
+    let responseBody = savedJobs;
+    this.#res.json(responseBody);
+    this.#res.status(statusCode);
+    this.#res.end();
+  }
+
   async get(){
     const jobId = this.#req.params.id
     const savedJob = await this.#storage.read(jobId);
@@ -109,6 +118,13 @@ export default class JobManager {
       this.#res.json(responseBody)
     }
     this.#res.status(jobRequest.trigger.expect_status_code);
+    this.#res.end();
+  }
+
+  async deleteAll(){
+    await this.#storage.deleteAll();
+    let statusCode = 200
+    this.#res.status(statusCode);
     this.#res.end();
   }
 }
