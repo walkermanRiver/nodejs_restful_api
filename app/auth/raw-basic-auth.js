@@ -31,11 +31,11 @@ async function auth(req, res, next) {
     next();
 }
 
-// const exports = {
-//   auth: basicAuth
-// };
+function getAuth(){
+  return auth;
+}
 
 // export const auth = basicAuth;
 export default {
-  auth
+  getAuth
 }
