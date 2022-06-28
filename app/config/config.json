@@ -1,0 +1,6 @@
+{
+  "server":{
+    "auth_method": "passport_basic",
+    "log_level":"debug"
+  }
+}

@@ -4,11 +4,10 @@ import sinon from 'sinon'
 import { NIL } from 'uuid'
 import createApp from '../app/create-app.js'
 import InMemoryJobStorage from '../app/db/in-memory-job-storage.js'
-// import basic_auth from '../app/auth/raw-basic-auth.js';
-// import basic_auth from '../app/auth/passport-basic-auth.js';
 import basic_auth from '../app/auth/auth-factory.js';
 import create_job from '../app/job/job-utility.js'
 import { JOB_STATUS_RESULT } from '../app/job/job-constants.js'
+import logger from '../app/util/logger.js'
 
 describe('App', () => {
     let client
@@ -22,7 +21,7 @@ describe('App', () => {
             return next();
           }
         });
-        const app = createApp(storage)
+        const app = createApp(storage, logger)
         client = supertest(app)
     })
 

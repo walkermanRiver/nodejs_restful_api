@@ -6,11 +6,13 @@ export default class JobManager {
   #storage = null
   #req = null
   #res = null
+  #log = null
 
-  constructor(req, res, storage) {
+  constructor(req, res, storage, logger = console) {
     this.#req = req;
     this.#res = res;
     this.#storage = storage
+    this.#log = logger.child({ module: 'job-manager' })
   }
 
   #checkJobRequestParameter(jobRequest){
@@ -19,6 +21,7 @@ export default class JobManager {
 
   #checkJobCallbackType(job_result_callback_type) {
     if(!job_result_callback_type || job_result_callback_type !== JOB_RESULT_CALLBACK_TYPE.POLLING) {
+      this.#log.error(`checkJobCallbackType failed: ${job_result_callback_type} is not correct type`)
       throw new InvalidParam(`Invalid job_result_callback_type: ${job_result_callback_type}`);
     }
   }
@@ -56,11 +59,13 @@ export default class JobManager {
 
   async get(){
     const jobId = this.#req.params.id
+    this.#log.debug(`get job for jobId ${jobId}`)
     const savedJob = await this.#storage.read(jobId);
 
     let statusCode = 200
     let responseBody = {};
     if(!this.#if_job_exist(savedJob)){
+      this.#log.error(`get job failed: ${jobId} does not exist`)
       statusCode = 404;
     } else {
       statusCode = savedJob.polling.expect_status_code;
@@ -81,6 +86,7 @@ export default class JobManager {
 
         responseBody[savedJob.polling.field_mapping.jobId] = jobId;
         responseBody['jobRequest'] = savedJob;
+        this.#log.debug('job %s detail is %s', jobId, JSON.stringify(responseBody))
         this.#res.json(responseBody)
       }
     }
@@ -91,6 +97,7 @@ export default class JobManager {
 
   async create() {
     const jobRequest = create_job(this.#req.body);
+    this.#log.debug('request to create job is %s', JSON.stringify(jobRequest));
     this.#checkJobRequestParameter(jobRequest);
 
     const responseBody = {};
@@ -114,6 +121,8 @@ export default class JobManager {
       responseBody['jobRequest'] = {...savedJob};
     }
 
+    this.#log.debug('response body to create job is %s', JSON.stringify(responseBody));
+
     if(jobRequest.trigger.if_return_body){
       this.#res.json(responseBody)
     }
@@ -122,6 +131,7 @@ export default class JobManager {
   }
 
   async deleteAll(){
+    this.#log.info('all job will be deleted');
     await this.#storage.deleteAll();
     let statusCode = 200
     this.#res.status(statusCode);

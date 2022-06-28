@@ -5,8 +5,15 @@ import InvalidParam from './invalid-param.js'
 import auth from './auth/auth-factory.js'
 import JobManager from './job/job-manager.js'
 
-export default function createApp(storage){
+export default function createApp(storage, logger){
+  const log = logger.child({ module: 'create-app' })
   const app = express()
+
+  app.use((req, res, next) => {
+    const { method, url } = req
+    log.info(`${method} ${url}`)
+    next()
+  })
 
   // use basic HTTP auth to secure the api
   app.use(auth.getAuth());
@@ -14,7 +21,7 @@ export default function createApp(storage){
 
   app.get('/api/v1/jobs', async (req, res, next) => {
     try{
-      const jobManagerInstance = new JobManager(req,res,storage);
+      const jobManagerInstance = new JobManager(req,res,storage, logger);
       await jobManagerInstance.getAll();
     }catch (error){
       next(error)
@@ -23,7 +30,7 @@ export default function createApp(storage){
 
   app.get('/api/v1/jobs/:id', async (req, res, next) => {
     try {
-      const jobManagerInstance = new JobManager(req,res,storage);
+      const jobManagerInstance = new JobManager(req,res,storage, logger);
       await jobManagerInstance.get();
     } catch (error){
       next(error)
@@ -32,7 +39,7 @@ export default function createApp(storage){
 
   app.post('/api/v1/jobs', async (req, res, next) => {
     try{
-      const jobManagerInstance = new JobManager(req,res,storage);
+      const jobManagerInstance = new JobManager(req,res,storage, logger);
       await jobManagerInstance.create();
     } catch (error){
       next(error)
@@ -41,7 +48,7 @@ export default function createApp(storage){
 
   app.delete('/api/v1/jobs', async (req, res, next) => {
     try{
-      const jobManagerInstance = new JobManager(req,res,storage);
+      const jobManagerInstance = new JobManager(req,res,storage,logger);
       await jobManagerInstance.deleteAll();
     } catch (error){
       next(error)
@@ -49,6 +56,9 @@ export default function createApp(storage){
   })
 
   app.use((error, req, res, next) => {
+    const { message } = error
+    log.error(message);
+
     if (error instanceof InvalidParam) {
       res
         .status(400)
