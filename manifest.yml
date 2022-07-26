@@ -1,0 +1,6 @@
+applications:
+- name: simple-test-service
+  command: npm start
+  buildpacks:
+  - https://github.com/cloudfoundry/nodejs-buildpack
+

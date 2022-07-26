@@ -67,8 +67,10 @@ export default class JobManager {
     if(!this.#if_job_exist(savedJob)){
       this.#log.error(`get job failed: ${jobId} does not exist`)
       statusCode = 404;
+      this.#res.status(statusCode);
     } else {
       statusCode = savedJob.polling.expect_status_code;
+      this.#res.status(statusCode);
 
       if(savedJob.polling.if_return_body) {
         const current_timestamp = new Date().getTime();
@@ -91,7 +93,6 @@ export default class JobManager {
       }
     }
 
-    this.#res.status(statusCode);
     this.#res.end();
   }
 
@@ -123,10 +124,11 @@ export default class JobManager {
 
     this.#log.debug('response body to create job is %s', JSON.stringify(responseBody));
 
+    this.#res.status(jobRequest.trigger.expect_status_code);
     if(jobRequest.trigger.if_return_body){
       this.#res.json(responseBody)
     }
-    this.#res.status(jobRequest.trigger.expect_status_code);
+
     this.#res.end();
   }
 

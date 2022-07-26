@@ -9,6 +9,16 @@ export default function createApp(storage, logger){
   const log = logger.child({ module: 'create-app' })
   const app = express()
 
+  app.get('/', async (req, res, next) => {
+    try{
+      res.status(200);
+      res.json("hello");
+      res.end();
+    }catch (error){
+      next(error)
+    }
+  });
+
   app.use((req, res, next) => {
     const { method, url } = req
     log.info(`${method} ${url}`)
