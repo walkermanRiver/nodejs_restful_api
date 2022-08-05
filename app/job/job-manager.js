@@ -39,13 +39,14 @@ export default class JobManager {
       Object.keys(jobRequest?.trigger?.required_headers).length > 0 ){
 
       for (const [key, value] of Object.entries(jobRequest?.trigger?.required_headers)) {
-        const lower_key = key.toLowerCase()
-        const lower_value = value.toLowerCase()
+        const lower_key = key.toLowerCase();
+        const lower_value = value.toLowerCase ? value.toLowerCase() : value;
         if(this.#req.headers.hasOwnProperty(lower_key) === false){
-          throw new Error(`Missing header: ${lower_key}`)
+          throw new InvalidParam(`Missing header: ${lower_key}`);
+          // throw new Error(`Missing header: ${lower_key}`)
         }
         if(this.#req.headers[lower_key] !== lower_value){
-          throw new Error(`Header ${lower_key} value is not correct: expect ${lower_value}`)
+          throw new InvalidParam(`Header ${lower_key} value ${this.#req.headers[lower_key]} is not correct: expect ${lower_value}`)
         }
       }
     }
