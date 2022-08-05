@@ -87,37 +87,100 @@ export default class JobManager {
       statusCode = 404;
       this.#res.status(statusCode);
     } else {
-      statusCode = savedJob.polling.expect_status_code;
+      const current_timestamp = new Date().getTime();
+      const execution_seconds = (current_timestamp - savedJob.trigger_timestamp)/1000;
+      let if_return_body = false;
+      let if_return_location = false;
+      let expect_status_result, expect_message;
+      if(execution_seconds < savedJob.job_execution_time_second){
+        //job is still runnintg
+        statusCode = savedJob.polling.running_stage.expect_status_code;
+        if_return_body = savedJob.polling.running_stage.if_return_body;
+        if_return_location = savedJob.polling.running_stage.if_return_location;
+        expect_status_result = savedJob.polling.running_stage.expect_status_result;
+        expect_message = savedJob.polling.running_stage.expect_message;
+        // this.#res.status(statusCode);
+        // if(savedJob.polling.running_stage.if_return_location){
+        //   const locationValue = `/api/v1/jobs/${jobId}`;
+        //   this.#res.set({
+        //     location: locationValue
+        //   })
+        // }
+
+        // if(savedJob.polling.running_stage.if_return_body){
+        //   responseBody[savedJob.polling.field_mapping.status] =
+        //     savedJob.polling.status_value_mapping[savedJob.polling.running_stage.expect_status_result];
+        //   responseBody[savedJob.polling.field_mapping.message] =
+        //     savedJob.polling.running_stage.expect_message;
+        //   responseBody[savedJob.polling.field_mapping.jobId] = jobId;
+        //   responseBody['jobRequest'] = savedJob;
+        //   this.#log.debug('job %s detail is %s', jobId, JSON.stringify(responseBody))
+        //   this.#res.json(responseBody)
+        // }
+
+      } else {
+        //job finished
+        statusCode = savedJob.polling.expect_status_code;
+        // this.#res.status(statusCode);
+        statusCode = savedJob.polling.expect_status_code;
+        if_return_body = savedJob.polling.if_return_body;
+        expect_status_result = savedJob.polling.expect_status_result;
+        expect_message = savedJob.polling.expect_message;
+
+        // if(savedJob.polling.if_return_body){
+        //   responseBody[savedJob.polling.field_mapping.status] =
+        //     savedJob.polling.status_value_mapping[savedJob.polling.expect_status_result];
+        //   responseBody[savedJob.polling.field_mapping.message] =
+        //     savedJob.polling.expect_message;
+        //   responseBody[savedJob.polling.field_mapping.jobId] = jobId;
+        //   responseBody['jobRequest'] = savedJob;
+        //   this.#log.debug('job %s detail is %s', jobId, JSON.stringify(responseBody))
+        //   this.#res.json(responseBody)
+        // }
+      }
+
       this.#res.status(statusCode);
 
-      if(savedJob.polling.if_return_location){
+      if(if_return_location){
         const locationValue = `/api/v1/jobs/${jobId}`;
         this.#res.set({
           location: locationValue
         })
       }
 
-      if(savedJob.polling.if_return_body) {
-        const current_timestamp = new Date().getTime();
-        const execution_seconds = (current_timestamp - savedJob.trigger_timestamp)/1000;
-        if(execution_seconds < savedJob.job_execution_time_second){
-          responseBody[savedJob.polling.field_mapping.status] =
-            savedJob.polling.status_value_mapping[JOB_STATUS_RESULT.RUNNING];
-          // responseBody[savedJob.polling.field_mapping.message]
-        }else{
-          responseBody[savedJob.polling.field_mapping.status] =
-            savedJob.polling.status_value_mapping[savedJob.polling.expect_status_result];
-          responseBody[savedJob.polling.field_mapping.message] =
-            savedJob.polling.expect_message;
-        }
-
+      if(if_return_body){
+        responseBody[savedJob.polling.field_mapping.status] =
+          savedJob.polling.status_value_mapping[expect_status_result];
+        responseBody[savedJob.polling.field_mapping.message] = expect_message;
         responseBody[savedJob.polling.field_mapping.jobId] = jobId;
         responseBody['jobRequest'] = savedJob;
         this.#log.debug('job %s detail is %s', jobId, JSON.stringify(responseBody))
         this.#res.json(responseBody)
       }
-    }
 
+      // statusCode = savedJob.polling.expect_status_code;
+      // this.#res.status(statusCode);
+
+      // if(savedJob.polling.if_return_body) {
+      //   const current_timestamp = new Date().getTime();
+      //   const execution_seconds = (current_timestamp - savedJob.trigger_timestamp)/1000;
+      //   if(execution_seconds < savedJob.job_execution_time_second){
+      //     responseBody[savedJob.polling.field_mapping.status] =
+      //       savedJob.polling.status_value_mapping[savedJob.polling.running_stage.expect_status_result];
+      //     // responseBody[savedJob.polling.field_mapping.message]
+      //   }else{
+      //     responseBody[savedJob.polling.field_mapping.status] =
+      //       savedJob.polling.status_value_mapping[savedJob.polling.expect_status_result];
+      //     responseBody[savedJob.polling.field_mapping.message] =
+      //       savedJob.polling.expect_message;
+      //   }
+
+      //   responseBody[savedJob.polling.field_mapping.jobId] = jobId;
+      //   responseBody['jobRequest'] = savedJob;
+      //   this.#log.debug('job %s detail is %s', jobId, JSON.stringify(responseBody))
+      //   this.#res.json(responseBody)
+      // }
+    }
     this.#res.end();
   }
 
@@ -144,6 +207,7 @@ export default class JobManager {
         })
       }
       responseBody[jobRequest.trigger.field_mapping.jobId] = jobId;
+      responseBody[jobRequest.trigger.field_mapping.status] = jobRequest.trigger.status_value_mapping[jobRequest.trigger.expect_status_result];
       responseBody['jobRequest'] = {...savedJob};
     }
 

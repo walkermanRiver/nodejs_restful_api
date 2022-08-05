@@ -28,10 +28,16 @@ const jobTempalate = {
     expect_status_code: 200,
     expect_status_result: JOB_STATUS_RESULT.SUCCESS,
     // expect_status_result_value: JOB_STATUS_RESULT.SUCCESS,
-    expect_message:'default Message',
+    expect_message:'default message',
     // request_process_time_ms: 100,
     if_return_body: true,
-    if_return_location: true,
+    running_stage:{
+      expect_status_code: 200,
+      expect_status_result: JOB_STATUS_RESULT.RUNNING,
+      expect_message: 'default running message',
+      if_return_location_: false,
+      if_return_body: true,
+    },
     field_mapping:{
       'status':'status',
       'message': 'message',
