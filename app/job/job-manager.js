@@ -42,10 +42,11 @@ export default class JobManager {
         const lower_key = key.toLowerCase()
         const lower_value = value.toLowerCase()
         if(this.#req.headers.hasOwnProperty(lower_key) === false){
-          throw new Error(`Missing header: ${lower_key}`)
+          throw new InvalidParam(`Missing header: ${lower_key}`);
+          // throw new Error(`Missing header: ${lower_key}`)
         }
         if(this.#req.headers[lower_key] !== lower_value){
-          throw new Error(`Header ${lower_key} value is not correct: expect ${lower_value}`)
+          throw new InvalidParam(`Header ${lower_key} value is not correct: expect ${lower_value}`)
         }
       }
     }
