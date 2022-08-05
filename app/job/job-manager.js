@@ -17,6 +17,7 @@ export default class JobManager {
 
   #checkJobRequestParameter(jobRequest){
     this.#checkJobCallbackType(jobRequest.job_result_callback_type);
+    this.#if_required_headers_exist(jobRequest)
   }
 
   #checkJobCallbackType(job_result_callback_type) {
@@ -31,6 +32,23 @@ export default class JobManager {
       return true;
     }
     return false;
+  }
+
+  #if_required_headers_exist(jobRequest){
+    if(jobRequest?.trigger?.required_headers &&
+      Object.keys(jobRequest?.trigger?.required_headers).length > 0 ){
+
+      for (const [key, value] of Object.entries(jobRequest?.trigger?.required_headers)) {
+        const lower_key = key.toLowerCase()
+        const lower_value = value.toLowerCase()
+        if(this.#req.headers.hasOwnProperty(lower_key) === false){
+          throw new Error(`Missing header: ${lower_key}`)
+        }
+        if(this.#req.headers[lower_key] !== lower_value){
+          throw new Error(`Header ${lower_key} value is not correct: expect ${lower_value}`)
+        }
+      }
+    }
   }
 
   #if_polling_failed(savedJob){
@@ -71,6 +89,13 @@ export default class JobManager {
     } else {
       statusCode = savedJob.polling.expect_status_code;
       this.#res.status(statusCode);
+
+      if(savedJob.polling.if_return_location){
+        const locationValue = `/api/v1/jobs/${jobId}`;
+        this.#res.set({
+          location: locationValue
+        })
+      }
 
       if(savedJob.polling.if_return_body) {
         const current_timestamp = new Date().getTime();
